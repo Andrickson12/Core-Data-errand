@@ -8,7 +8,7 @@
 import UIKit
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-
+    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     //drive the number of cell that we're going to use
@@ -36,7 +36,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(didTapAdd))
         
         getAllItems()
-
+        
     }
     
     @objc private func didTapAdd() {
@@ -54,7 +54,78 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         present(alert, animated: true)
     }
     
-    // MARK: - Tableview methods
+    // MARK: - Core Data
+    
+    func getAllItems(){
+        
+        do {
+            
+            models = try context.fetch(ToDoListItem.fetchRequest())
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
+            
+        } catch {
+            //Error
+            print("Unexpected error occurred")
+            
+        }
+    }
+    
+    func createItem(name: String){
+        
+        let newItem = ToDoListItem(context: context)
+        newItem.name = name
+        newItem.createdAt = Date()
+        
+        //Saving it
+        do {
+            
+            try context.save()
+            getAllItems()
+            
+        } catch {
+            //Error
+            print("Unexpected error occurred")
+        }
+    }
+    
+    func deleteItem(item: ToDoListItem){
+        
+        context.delete(item)
+        
+        //Saving it
+        do {
+            
+            try context.save()
+            getAllItems()
+            
+        } catch {
+            //Error
+            print("Unexpected error occurred")
+        }
+    }
+    
+    func updateItem(item: ToDoListItem, newName: String){
+        item.name = newName
+        
+        //Saving it
+        do {
+            
+            try context.save()
+            getAllItems()
+            
+        } catch {
+            //Error
+            print("Unexpected error occurred")
+        }
+    }
+}
+
+
+// MARK: - Tableview methods
+extension ViewController {
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return models.count
     }
@@ -94,72 +165,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         sheet.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { [weak self] _ in
             self?.deleteItem(item: item)
         }))
-
+        
         present(sheet, animated: true)
     }
-
-    // MARK: - Core Data
-    func getAllItems(){
-        
-        do {
-            
-            models = try context.fetch(ToDoListItem.fetchRequest())
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
-            }
-            
-        } catch {
-            
-            //Error
-            
-        }
-    }
     
-    func createItem(name: String){
-        
-        let newItem = ToDoListItem(context: context)
-        newItem.name = name
-        newItem.createdAt = Date()
-        
-        //Saving it
-        do {
-            
-            try context.save()
-            getAllItems()
-            
-        } catch {
-            //Error
-        }
-    }
-    
-    func deleteItem(item: ToDoListItem){
-        
-        context.delete(item)
-        
-        //Saving it
-        do {
-            
-            try context.save()
-            getAllItems()
-            
-        } catch {
-            //Error
-        }
-    }
-    
-    func updateItem(item: ToDoListItem, newName: String){
-        item.name = newName
-        
-        //Saving it
-        do {
-            
-            try context.save()
-            getAllItems()
-            
-        } catch {
-            //Error
-        }
-    }
-
 }
-
